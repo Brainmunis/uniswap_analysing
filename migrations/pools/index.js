@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import wait from '../../lib/wait';
-// import * as web3 from '../../lib/web3'
+import updateIndexStatus from '../../lib/index_tracker_operations';
+import clearOldEvents from '../../lib/clearPoolData';
 import Web3 from 'web3';
 const web3 = new Web3("https://mainnet.infura.io/v3/5b53c456464f4ef384af20b4117bf01d");
 
@@ -15,16 +16,29 @@ const processBlockLimit = 1000;
 
 async function startEventProcessing(contract_address, fromBlock, res, pool_id){
     const eventPromises = [];
+    const _this = this;
     for(let event of supportedEvents){
         try{
             const contract = getContractInstance(contract_address);
-            var eventData = await getEventsData(fromBlock, event, contract);
+            var [eventData, historical_block] = await getEventsData(fromBlock, event, contract);
         }catch(e){
             throw JSON.stringify(e)
         }
         console.log(`Event processing started for contract : ${contract_address} for event : ${event}`)
         if(!eventData || !eventData.length){
             throw "Event data not found."
+        }
+        const [iserr, status] = await wait(
+            updateIndexStatus,
+            _this,
+            event,
+            pool_id,
+            "initiated",
+            "",
+            new Date()
+        )
+        if(iserr){
+            throw iserr
         }
         const processId = refreshEvents( contract_address, event, eventData, pool_id)
         eventPromises.push(processId)
@@ -33,13 +47,70 @@ async function startEventProcessing(contract_address, fromBlock, res, pool_id){
         message : "Event regresh has been started. You can track progress in below API.",
         API : "/api/refresh/:contract_address/status"
     })
-    const [perr, status] = await wait(
+    const [perr, pstatus] = await wait(
         Promise.all,
         Promise,
         eventPromises
     )
     if(perr){
         console.log(`Event processing error for contract : ${contract_address}. error : ${JSON.stringify(perr)}`)
+    }
+    const [eeerr, poolClearStatus] = await wait(
+        clearOldEvents,
+        this,
+        pool_id,
+        historical_block
+    );
+    if(eeerr){
+        const [iserr, status1] = await wait(
+            updateIndexStatus,
+            _this,
+            supportedEvents[0],
+            pool_id,
+            "completed-failed-cleanup",
+            "Error while cleaning up old indexes",
+            new Date()
+        )
+        if(iserr){
+            console.log(`Error while updating index status for contract : ${contract_address}. error : ${iserr}`)
+        }
+        const [iserr2, status2] = await wait(
+            updateIndexStatus,
+            _this,
+            supportedEvents[1],
+            pool_id,
+            "completed-failed-cleanup",
+            "Error while cleaning up old indexes",
+            new Date()
+        )
+        if(iserr2){
+            console.log(`Error while updating index status for contract : ${contract_address}. error : ${iserr}`)
+        }
+        console.log(`Error while clearing old indexes for contract : ${contract_address}. error : ${iserr}`)
+    }
+    const [iserr, status2] = await wait(
+        updateIndexStatus,
+        this,
+        supportedEvents[0],
+        pool_id,
+        "completed",
+        "",
+        new Date()
+    )
+    if(iserr){
+        console.log(`Error while updating index status for contract : ${contract_address}. error : ${iserr}`)
+    }
+    const [idserr, status3] = await wait(
+        updateIndexStatus,
+        this,
+        supportedEvents[1],
+        pool_id,
+        "completed",
+        "",
+        new Date()
+    )
+    if(idserr){
+        console.log(`Error while updating index status for contract : ${contract_address}. error : ${iserr}`)
     }
     console.log(`Event processing completed for contract : ${contract_address}.`)
 }
@@ -86,13 +157,14 @@ async function getEventsData(fromBlock, eventType, contract){
     }
     const historical_block = latest_block - fromBlock;
     console.log("latest: ", latest_block, "historical block: ", historical_block);
-    return contract.getPastEvents(
+    const eventData = await contract.getPastEvents(
         eventType, 
         { 
             fromBlock: historical_block, 
             toBlock: 'latest' 
         }
     );
+    return [eventData, historical_block]
 }
 
 async function constructPoolActivityEventDate(data_events, pool_id){

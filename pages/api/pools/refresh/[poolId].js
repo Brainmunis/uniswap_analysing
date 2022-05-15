@@ -1,6 +1,7 @@
 import conn from '../../../../lib/db'
 import wait from '../../../../lib/wait';
 import startEventProcessing from '../../../../migrations/pools/'
+import updateIndexStatus from '../../../../lib/index_tracker_operations';
 export default async (req, res) => {
     const {
         poolId,
@@ -23,11 +24,6 @@ export default async (req, res) => {
     if(!exists.rows.length){
         return res.status(400).send({ error : "Invalid pool id"})
     }
-    // if(global.refreshingPools[exists.rows[0].contract_address]){
-    //     return res.status(400).send({ message : "This pool is already in refreshing phase."})
-    // }else{
-    //     global.refreshingPools[exists.rows[0].contract_address] = true
-    // }
     const [peerr, data] = await wait(
         startEventProcessing,
         this,
