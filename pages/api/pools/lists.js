@@ -14,5 +14,5 @@ export default async (req, res) => {
     if(cerr){
         return res.status(500).send({ error : JSON.stringify(cerr)})
     }
-    return res.status(200).send({ pools : results.rows})
+    return res.status(200).send({ pools : results && results.rows || []})
 };
