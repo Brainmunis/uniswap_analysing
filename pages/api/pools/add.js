@@ -6,6 +6,7 @@ export default async (req, res) => {
         contract_address,
         token0,
         token1,
+        label
     } = req.body;
 
     if(!contract_address || typeof contract_address !== 'string'){
@@ -20,9 +21,10 @@ export default async (req, res) => {
     const values = [
         contract_address,
         token0,
-        token1
+        token1,
+        label
     ]
-    const query = 'INSERT INTO pools(contract_address,token0,token1) VALUES ($1, $2, $3)'
+    const query = 'INSERT INTO pools(contract_address,token0,token1,label) VALUES ($1, $2, $3, $4)'
 
     const [cerr, results] = await wait(
         conn.query,

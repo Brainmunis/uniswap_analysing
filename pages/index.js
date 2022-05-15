@@ -1,3 +1,4 @@
+global.refreshingPools = {};
 export default function Home() {
   return (
     <div style={{padding : 50}}>
