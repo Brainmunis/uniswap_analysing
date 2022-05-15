@@ -17,7 +17,8 @@ CREATE TABLE pool_activity (
     token_amount0 VARCHAR(100) NOT NULL,
     token_amount1 VARCHAR(100) NOT NULL,
     contract_address VARCHAR(100) NOT NULL REFERENCES pools(contract_address),
-    transacted_at TIMESTAMPTZ NOT NULL
+    transacted_at TIMESTAMPTZ NOT NULL,
+    pool_id INT NOT NULL REFERENCES pools(id)
 )
 
 INSERT INTO pool_activity (block_no,event_type,owner_address,transaction_hash,total_value,token_amount0,token_amount1,contract_address,transacted_at) VALUES 

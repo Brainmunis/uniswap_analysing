@@ -9,7 +9,7 @@ export default async (eventData) =>{
 }
 
 function consructInsertManyQuery(){
-    return "INSERT INTO pool_activity (block_no,event_type,owner_address,transaction_hash,total_value,token_amount0,token_amount1,contract_address,transacted_at) VALUES %L"
+    return "INSERT INTO pool_activity (block_no,event_type,owner_address,transaction_hash,total_value,token_amount0,token_amount1,contract_address,transacted_at,pool_id) VALUES %L"
 }
 
 function constructValuesForInsertManyQuery(eventDatas, query){
@@ -25,13 +25,9 @@ function constructValuesForInsertManyQuery(eventDatas, query){
             eventObj.token_amount0,
             eventObj.token_amount1,
             eventObj.contract_address,
-            eventObj.transacted_at
+            eventObj.transacted_at,
+            eventObj.pool_id
         ])
-        // if(i !== eventDatas.length - 1){
-        //     query += `($1, $2, $3, $4, $5, $6, $7, $8, $9),`            
-        // }else{
-        //     query += `($1, $2, $3, $4, $5, $6, $7, $8, $9)`           
-        // }
     }
     return values
 }

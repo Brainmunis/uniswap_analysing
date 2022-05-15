@@ -13,7 +13,7 @@ const supportedEvents = [
 ]
 const processBlockLimit = 1000;
 
-async function startEventProcessing(contract_address, fromBlock, res){
+async function startEventProcessing(contract_address, fromBlock, res, pool_id){
     const eventPromises = [];
     for(let event of supportedEvents){
         try{
@@ -26,13 +26,13 @@ async function startEventProcessing(contract_address, fromBlock, res){
         if(!eventData || !eventData.length){
             throw "Event data not found."
         }
-        const processId = refreshEvents( contract_address, event, eventData)
+        const processId = refreshEvents( contract_address, event, eventData, pool_id)
         eventPromises.push(processId)
     }
-    // res.status(200).send({
-    //     message : "Event regresh has been started. You can track progress in below API.",
-    //     API : "/api/refresh/:contract_address/status"
-    // })
+    res.status(200).send({
+        message : "Event regresh has been started. You can track progress in below API.",
+        API : "/api/refresh/:contract_address/status"
+    })
     const [perr, status] = await wait(
         Promise.all,
         Promise,
@@ -44,11 +44,11 @@ async function startEventProcessing(contract_address, fromBlock, res){
     console.log(`Event processing completed for contract : ${contract_address}.`)
 }
 
-async function refreshEvents(contract_address, event_type, eventData){
+async function refreshEvents(contract_address, event_type, eventData, pool_id){
     console.log(`Event processing started for contract : ${contract_address} for event : ${event_type}`)
     
     console.log(`Events data fetched. for contract : ${contract_address} for event : ${event_type}`)
-    const constructedResponse = await constructPoolActivityEventDate(eventData);
+    const constructedResponse = await constructPoolActivityEventDate(eventData, pool_id);
     console.log(`Events data constructed. for contract : ${contract_address} for event : ${event_type}`)
     console.log(`${constructedResponse.length} blocks inserting in db. for contract : ${contract_address} for event : ${event_type}`)
     const chunks = _.chunk(constructedResponse, processBlockLimit);
@@ -95,7 +95,7 @@ async function getEventsData(fromBlock, eventType, contract){
     );
 }
 
-async function constructPoolActivityEventDate(data_events){
+async function constructPoolActivityEventDate(data_events, pool_id){
     const poolsActivity = [];
     for (let i = 0; i < data_events.length; i++) {
         const ownerAddress = data_events[i]['returnValues']['owner'];
@@ -117,7 +117,8 @@ async function constructPoolActivityEventDate(data_events){
             token_amount0 : tokenAmount0,
             token_amount1 : tokenAmount1,
             contract_address : data_events[i].address,
-            transacted_at : timestamp || new Date()
+            transacted_at : timestamp || new Date(),
+            pool_id
         }
         poolsActivity.push(obj)
     };

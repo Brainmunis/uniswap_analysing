@@ -33,7 +33,8 @@ export default async (req, res) => {
         this,
         exists.rows[0].contract_address,
         fromBlock,
-        res
+        res,
+        poolId
     )
     if(peerr){
         return res.status(400).send({ message : peerr})
