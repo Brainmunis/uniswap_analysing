@@ -3,7 +3,7 @@ import wait from '../../lib/wait';
 import updateIndexStatus from '../../lib/index_tracker_operations';
 import clearOldEvents from '../../lib/clearPoolData';
 import Web3 from 'web3';
-const web3 = new Web3("https://mainnet.infura.io/v3/5b53c456464f4ef384af20b4117bf01d");
+const web3 = new Web3(process.env.RPC_API);
 
 
 import insertMany from '../db_operations/insertMany';
