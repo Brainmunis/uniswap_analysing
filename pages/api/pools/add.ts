@@ -1,7 +1,8 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import conn from '../../../lib/db'
 import wait from '../../../lib/wait';
 
-export default async (req, res) => {
+export default async (req : NextApiRequest, res : NextApiResponse) => {
     const {
         contract_address,
         token0,

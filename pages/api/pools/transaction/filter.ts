@@ -1,7 +1,8 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import conn from '../../../../lib/db'
 import wait from '../../../../lib/wait';
 
-export default async (req, res) => {
+export default async (req :NextApiRequest, res : NextApiResponse) => {
     const skip = Number(req.query.skip) || 0;
     const limit = Number(req.query.limit) || 10;
     const {
@@ -11,7 +12,7 @@ export default async (req, res) => {
         poolId
     } = req.query;
 
-    let query = `SELECT * FROM pool_activity WHERE pool_id = ${poolId}`
+    let query : string = `SELECT * FROM pool_activity WHERE pool_id = ${poolId}`
     const limitQuery = ` OFFSET ${skip} LIMIT ${limit}`
     const sortQuery = " ORDER BY transacted_at DESC"
     if(status && status === "add"){

@@ -1,13 +1,14 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import conn from '../../../../lib/db'
 import wait from '../../../../lib/wait';
-import startEventProcessing from '../../../../migrations/pools/'
-import updateIndexStatus from '../../../../lib/index_tracker_operations';
-export default async (req, res) => {
+import startEventProcessing from '../../../../migrations/pools'
+
+export default async (req :NextApiRequest, res : NextApiResponse) => {
     const {
         poolId,
         fromBlock
     } = req.body;
-    console.log('query ', req.query)
+    
     if(!req.body.hasOwnProperty('fromBlock')){
         return res.status(400).send({ message : "fromBlock is required."})
     }

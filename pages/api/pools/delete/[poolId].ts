@@ -1,13 +1,14 @@
+import { NextApiRequest, NextApiResponse } from 'next'
 import conn from '../../../../lib/db'
 import wait from '../../../../lib/wait';
 
-export default async (req, res) => {
+export default async (req :NextApiRequest, res : NextApiResponse) => {
     const {
         poolId
     } = req.query
-    console.log('query ', req.query)
-    const fetchQuery = `SELECT * FROM pools WHERE id = ${poolId}`
-    const deleteQuery = `DELETE FROM pools WHERE id = ${poolId}`
+    
+    const fetchQuery :string = `SELECT * FROM pools WHERE id = ${poolId}`
+    const deleteQuery :string = `DELETE FROM pools WHERE id = ${poolId}`
 
     const [cerr, exists] = await wait(
         conn.query,
