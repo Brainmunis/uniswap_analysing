@@ -185,9 +185,9 @@ async function constructPoolActivityEventDate(data_events, pool_id){
             event_type : data_events[i].event,
             owner_address : ownerAddress,
             transaction_hash : data_events[i].transactionHash,
-            total_value : totalValue,
-            token_amount0 : tokenAmount0,
-            token_amount1 : tokenAmount1,
+            total_value : web3.utils.fromWei(totalValue),
+            token_amount0 : web3.utils.fromWei(tokenAmount0),
+            token_amount1 : web3.utils.fromWei(tokenAmount1),
             contract_address : data_events[i].address,
             transacted_at : timestamp || new Date(),
             pool_id

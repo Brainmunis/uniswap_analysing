@@ -1,0 +1,26 @@
+version: '3.8'
+
+services: 
+  backend_uniswap-ananysis: 
+    container_name: backend_uniswap
+    image: backend_uniswap-ananysis
+    build:
+      context: .
+    ports:
+      - '5000:3000'
+    depends_on: 
+      - postgresdb
+  postgresdb:
+    container_name: postgresdb
+    image: 'postgres:12'
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=francesco
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=defaultdb
+    volumes:
+      - pgdata1:/var/lib/postgresql/data1
+
+volumes:
+  pgdata1: {}
