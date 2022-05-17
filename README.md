@@ -1,11 +1,11 @@
-To start the project do following steps
+# To start the project do following steps
 
 pre-requisites
 
 1 - docker and docker compose installed
 
 
-To Start the project
+# To Start the project, perform below commands inside project root directory
 
 1 - sudo docker-compose build
 
@@ -19,20 +19,23 @@ To Start the project
 
 Till this step our server should up and running on 5000 port and tables should synced
 
-4 - You can start indexes the events into database using this API 
+4 - You can use below API to see all available pools inside DB
+  - GET - http://localhost:5000/api/pools/lists
+
+5 - You can start indexes the events into database using this API 
     POST - http://localhost:5000/api/pools/refresh/1 - 
     body - { fromBlock : 10000, poolId : 1 }
     Explaination 
       - poolId -> earlier we have added sample 3 pairs in pools table. 
         So in pools table 3 pairs will represent as their unique id as 1,2,3
 
-5 - We can track the record of ongoing indexes using below API 
+6 - We can track the record of ongoing indexes using below API 
   - GET - http://localhost:5000/api/pools/refresh/stats?poolId=1
 
-6 - To see all list of available pools ( tokens pairs) use this API 
+7 - To see all list of available pools ( tokens pairs) use this API 
   - GET - http://localhost:5000/api/pools/lists
 
-7 - once all the events are indexed inside database then you can use transaction filter 
+8 - once all the events are indexed inside database then you can use transaction filter 
     API to filter data based on below filter 
     "Transactions filtered by added/removed, date/time, user address"
 
@@ -45,9 +48,10 @@ Till this step our server should up and running on 5000 port and tables should s
         user_address : pass transaction user address to filter transaction by user_address,
     }
 
-8 - We can check status of the event indexes in db using below API
+9 - We can check status of the event indexes in db using below API
   - GET - http://localhost:5000/api/pools/refresh/stats?poolId=1
 
 
-9 - You can also get pool status using below API
+10 - You can also get pool status using below API
   - GET - http://localhost:5000/api/pools/status?poolId=1
+
