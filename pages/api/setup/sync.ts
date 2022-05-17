@@ -1,7 +1,8 @@
-import conn from '../../lib/db';
-import wait from '../../lib/wait';
+import { NextApiRequest, NextApiResponse } from 'next'
+import conn from '../../../lib/db';
+import wait from '../../../lib/wait';
 
-async function initialDbSetup(req, res){
+export default async (req : NextApiRequest, res : NextApiResponse)=>{
     const [perr, pools] = await wait(
         createPoolTable,
         this
@@ -19,7 +20,7 @@ async function initialDbSetup(req, res){
         return res.status(400).send("Error activity creating pool table.")
     }
     const [iterr, indexTracking] = await wait(
-        createPoolActivityTable,
+        createIndexTrackingTable,
         this
     )
     if(iterr){
@@ -38,12 +39,12 @@ async function initialDbSetup(req, res){
 }
 
 async function createPoolTable(){
-    if(!isTableExists('pools')){
+    if(!await isTableExists('pools')){
         await conn.query(`
         CREATE TABLE pools (
             id BIGSERIAL NOT NULL UNIQUE,
             contract_address VARCHAR(100) NOT NULL PRIMARY KEY,
-            label VARCHAR(50) NOT NULL,
+            pair_label VARCHAR(50) NOT NULL,
             token0 VARCHAR(50) NOT NULL,
             token1 VARCHAR(50) NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -55,16 +56,20 @@ async function createPoolTable(){
 }
 
 async function isTableExists(table_name){
-    let a = await conn.query(`SELECT EXISTS (SELECT relname FROM pg_class WHERE relname = '${table_name}'`)
-    if(a && a.rows.length && a.rows[0].exists){
-        return true
-    }else{
-        return false
+    try{
+        let a = await conn.query(`SELECT EXISTS (SELECT relname FROM pg_class WHERE relname = '${table_name}')`)
+        if(a && a.rows.length && a.rows[0].exists){
+            return true
+        }else{
+            return false
+        }
+    }catch(e){
+        throw e
     }
 }
 
 async function createPoolActivityTable(){
-    if(!isTableExists('pool_activity')){
+    if(!await isTableExists('pool_activity')){
         await conn.query(`
         CREATE TABLE pool_activity (
             id BIGSERIAL NOT NULL PRIMARY KEY,
@@ -72,20 +77,21 @@ async function createPoolActivityTable(){
             event_type VARCHAR(50) NOT NULL,
             owner_address VARCHAR(100) NOT NULL,
             transaction_hash VARCHAR(100) NOT NULL,
-            total_value VARCHAR(100) NOT NULL,
-            token_amount0 VARCHAR(100) NOT NULL,
-            token_amount1 VARCHAR(100) NOT NULL,
+            total_value_in_eth float8 NOT NULL,
+            token_amount0_in_eth float8 NOT NULL,
+            token_amount1_in_eth float8 NOT NULL,
             contract_address VARCHAR(100) NOT NULL REFERENCES pools(contract_address),
             transacted_at TIMESTAMPTZ NOT NULL,
             pool_id INT NOT NULL REFERENCES pools(id)
         )`)
-    }else{
         console.log("Pool activity table created.")
+    }else{
+        console.log("Pool activity table already exists..")
     }
 }
 
 async function createIndexTrackingTable(){
-    if(!isTableExists('indexing_tracker')){
+    if(!await isTableExists('indexing_tracker')){
         await conn.query(
             `CREATE TABLE indexing_tracker (
                 id BIGSERIAL NOT NULL PRIMARY KEY,
@@ -104,8 +110,8 @@ async function createIndexTrackingTable(){
     
 }
 
-function createSamplePoolPairs(){
-    if(isTableExists("pools")){
+async function createSamplePoolPairs(){
+    if(await isTableExists("pools")){
         let findQuery = "SELECT * FROM pools"
 
         let pools = await conn.query(findQuery)
@@ -115,16 +121,14 @@ function createSamplePoolPairs(){
             return true
         }else{
             const query = `INSERT INTO pools
-            (contract_address,token0,token1,label) 
+            (contract_address,token0,token1,pair_label) 
             VALUES 
-            ("0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8", "USDC", "ETH", "USDC-ETH")
-            ("0x290A6a7460B308ee3F19023D2D00dE604bcf5B42", "MATIC", "ETH", "MATIC-ETH")
-            ("0x127452F3f9cDc0389b0Bf59ce6131aA3Bd763598", "ETH", "SOL", "SOL-SOL")`
+            ('0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8', 'USDC', 'ETH', 'USDC-ETH'),
+            ('0x290A6a7460B308ee3F19023D2D00dE604bcf5B42', 'MATIC', 'ETH', 'MATIC-ETH'),
+            ('0x127452F3f9cDc0389b0Bf59ce6131aA3Bd763598', 'ETH', 'SOL', 'SOL-SOL')`
 
             await conn.query(query)
             console.log("Sample pools created")
         }
     }
 }
-
-export default initialDbSetup;
